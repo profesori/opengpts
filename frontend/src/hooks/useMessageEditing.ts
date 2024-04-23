@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Message } from "../types";
 import { omit } from "lodash";
+import { getCookie } from "../utils/cookie";
 
 export function useMessageEditing(
   threadId: string | undefined,
@@ -13,9 +14,11 @@ export function useMessageEditing(
   }, []);
   const commitEdits = useCallback(async () => {
     if (!threadId) return;
+    const opengpts_user_id = getCookie("opengpts_user_id");
+
     fetch(`/threads/${threadId}/state`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${opengpts_user_id}`},
       body: JSON.stringify({ values: Object.values(editing) }),
     })
       .then((res) => {

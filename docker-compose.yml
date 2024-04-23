@@ -15,25 +15,15 @@ services:
       - .env
     volumes:
       - ./postgres-volume:/var/lib/postgresql/data
-  postgres-setup:
-    image: migrate/migrate
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend/migrations:/migrations
-    env_file:
-      - .env
-    command: ["-path", "/migrations", "-database", "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable", "up"]
+    networks:
+      - net
+
   backend:
     container_name: opengpts-backend
     build:
       context: backend
     ports:
       - "8100:8000" # Backend is accessible on localhost:8100
-    depends_on:
-      postgres-setup:
-        condition: service_completed_successfully
     env_file:
       - .env
     volumes:
@@ -42,6 +32,19 @@ services:
       POSTGRES_HOST: "postgres"
     command:
       - --reload
+    networks:
+      - net
+
+  redis:
+    image: 'redis:6.2-alpine'
+    container_name: redis
+    command: ["redis-server", "--bind", "redis", "--port", "6379"]
+    hostname: redis
+    ports:
+      - '6379:6379'
+    networks:
+      - net
+
   frontend:
     container_name: opengpts-frontend
     build:
@@ -55,3 +58,9 @@ services:
       - "5173:5173" # Frontend is accessible on localhost:5173
     environment:
       VITE_BACKEND_URL: "http://backend:8000"
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge

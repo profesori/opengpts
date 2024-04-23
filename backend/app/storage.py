@@ -197,6 +197,11 @@ async def get_or_create_user(sub: str) -> tuple[User, bool]:
         )
         return user, True
 
+# create a method to retrievea user by user_id, if not found return None
+async def get_user_by_id(user_id: str) -> Optional[User]:
+    """Get a user by API key."""
+    async with get_pg_pool().acquire() as conn:
+        return await conn.fetchrow('SELECT * FROM "user" WHERE user_id = $1', user_id)
 
 async def delete_thread(user_id: str, thread_id: str):
     """Delete a thread by ID."""

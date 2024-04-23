@@ -3,7 +3,6 @@ from langchain_community.document_loaders.parsers import BS4HTMLParser, PDFMiner
 from langchain_community.document_loaders.parsers.generic import MimeTypeBasedParser
 from langchain_community.document_loaders.parsers.msword import MsWordParser
 from langchain_community.document_loaders.parsers.txt import TextParser
-
 HANDLERS = {
     "application/pdf": PDFMinerParser(),
     "text/plain": TextParser(),
@@ -12,6 +11,7 @@ HANDLERS = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": (
         MsWordParser()
     ),
+    'text/csv': TextParser(),
 }
 
 SUPPORTED_MIMETYPES = sorted(HANDLERS.keys())

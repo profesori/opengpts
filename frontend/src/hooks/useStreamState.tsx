@@ -2,6 +2,7 @@
 import { useCallback, useState } from "react";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { Message } from "../types";
+import { getCookie } from "../utils/cookie";
 
 export interface StreamState {
   status: "inflight" | "error" | "done";
@@ -33,10 +34,12 @@ export function useStreamState(): StreamStateProps {
       setController(controller);
       setCurrent({ status: "inflight", messages: input || [] });
 
+      const opengpts_user_id = getCookie("opengpts_user_id");
+
       await fetchEventSource("/runs/stream", {
         signal: controller.signal,
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${opengpts_user_id}`},
         body: JSON.stringify({ input, thread_id, config }),
         openWhenHidden: true,
         onmessage(msg) {

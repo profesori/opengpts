@@ -15,16 +15,6 @@ services:
       - .env
     volumes:
       - ./postgres-volume:/var/lib/postgresql/data
-  postgres-setup:
-    image: migrate/migrate
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./backend/migrations:/migrations
-    env_file:
-      - .env
-    command: ["-path", "/migrations", "-database", "postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable", "up"]
   backend:
     container_name: opengpts-backend
     image: docker.io/langchain/open-gpts:latest

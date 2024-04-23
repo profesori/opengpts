@@ -208,7 +208,7 @@ Sign up at the link above and then set the relevant environment variables
 
 ```shell
 export LANGCHAIN_TRACING_V2="true"
-export LANGCHAIN_API_KEY=...
+export LANGCHAIN_API_KEY=
 ```
 
 Start the backend server

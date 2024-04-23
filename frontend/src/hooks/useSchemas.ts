@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { simplifySchema } from "../utils/simplifySchema";
 import { getDefaults } from "../utils/defaults";
+import { getCookie } from "../utils/cookie";
 
 export interface SchemaField {
   type: string;
@@ -36,7 +37,13 @@ export function useSchemas() {
 
   useEffect(() => {
     async function save() {
-      const configSchema = await fetch("/runs/config_schema")
+      const opengpts_user_id = getCookie("opengpts_user_id");
+
+      const configSchema = await fetch("/runs/config_schema", {
+        headers: {
+          "Authorization": `Bearer ${opengpts_user_id}`,
+        }
+      })
         .then((r) => r.json())
         .then(simplifySchema);
       setSchemas({

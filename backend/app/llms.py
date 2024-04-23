@@ -10,6 +10,7 @@ from langchain_community.chat_models import BedrockChat, ChatFireworks
 from langchain_community.chat_models.ollama import ChatOllama
 from langchain_google_vertexai import ChatVertexAI
 from langchain_openai import AzureChatOpenAI, ChatOpenAI
+from langchain_groq import ChatGroq
 
 logger = logging.getLogger(__name__)
 
@@ -98,3 +99,12 @@ def get_ollama_llm():
         ollama_base_url = "http://localhost:11434"
 
     return ChatOllama(model=model_name, base_url=ollama_base_url)
+
+@lru_cache(maxsize=1)
+def get_groq_llm():
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set")
+    
+    return ChatGroq(temperature=0, groq_api_key=api_key, model_name="llama3-70b-8192")
+

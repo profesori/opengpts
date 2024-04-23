@@ -525,6 +525,7 @@ export function Config(props: {
   const dropzone = useDropzone(DROPZONE_CONFIG);
   const [isPublic, setPublic] = useState(props.config?.public ?? false);
 
+  console.log(values, typeSpec, typeSpec?.files);
   useEffect(() => {
     if (!values) return;
     if (!values.configurable) return;
@@ -646,7 +647,7 @@ export function Config(props: {
         </>
       )}
 
-      {!props.config && typeSpec?.files && (
+      {typeSpec?.files && (
         <FileUploadDropzone
           state={dropzone}
           files={files}

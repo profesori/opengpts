@@ -47,7 +47,16 @@ class JWTAuthBase(AuthHandler):
     @abstractmethod
     def get_decode_key(self, token: str) -> str:
         ...
+class APIKeyAuth(AuthHandler):
+    """Auth handler that uses an API key in the Authorization header."""
+    async def __call__(self, request: Request) -> User:
+        http_bearer = await HTTPBearer()(request)
+        api_key = http_bearer.credentials
 
+        if not (user := await storage.get_user_by_id(api_key)):
+            raise HTTPException(status_code=401, detail="Invalid API key")
+
+        return user
 
 class JWTAuthLocal(JWTAuthBase):
     """Auth handler that uses a hardcoded decode key from env."""
@@ -108,7 +117,7 @@ def get_auth_handler() -> AuthHandler:
         return JWTAuthLocal()
     elif settings.auth_type == AuthType.JWT_OIDC:
         return JWTAuthOIDC()
-    return NOOPAuth()
+    return APIKeyAuth()
 
 
 async def auth_user(

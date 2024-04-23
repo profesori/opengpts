@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer } from "react";
 import orderBy from "lodash/orderBy";
 import { Chat } from "../types";
+import { getCookie } from "../utils/cookie";
 
 export interface ChatListProps {
   chats: Chat[] | null;
@@ -30,11 +31,14 @@ function chatsReducer(
 export function useChatList(): ChatListProps {
   const [chats, setChats] = useReducer(chatsReducer, null);
 
+  const opengpts_user_id = getCookie('opengpts_user_id');
+
   useEffect(() => {
     async function fetchChats() {
       const chats = await fetch("/threads/", {
         headers: {
           Accept: "application/json",
+          Authorization: `Bearer ${opengpts_user_id}`,
         },
       }).then((r) => r.json());
       setChats(chats);
@@ -50,6 +54,7 @@ export function useChatList(): ChatListProps {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
+        Authorization: `Bearer ${opengpts_user_id}`,
       },
     });
     const saved = await response.json();
@@ -63,6 +68,7 @@ export function useChatList(): ChatListProps {
         method: "DELETE",
         headers: {
           Accept: "application/json",
+          Authorization: `Bearer ${opengpts_user_id}`,
         },
       });
       setChats((chats || []).filter((c: Chat) => c.thread_id !== thread_id));

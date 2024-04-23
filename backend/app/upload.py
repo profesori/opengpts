@@ -10,7 +10,8 @@ For the time being, upload and ingestion are coupled
 from __future__ import annotations
 
 import os
-from typing import BinaryIO, List, Optional
+import tempfile
+from typing import BinaryIO, List, Optional, Union
 
 from langchain_core.document_loaders.blob_loaders import Blob
 from langchain_community.vectorstores.pgvector import PGVector
@@ -23,7 +24,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter, TextSplitter
 
-from app.ingest import ingest_blob
+from app.ingest import ingest_blob, ingest_url
 from app.parsing import MIMETYPE_BASED_PARSER
 
 
@@ -77,7 +78,7 @@ def _determine_azure_or_openai_embeddings() -> PGVector:
     )
 
 
-class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
+class IngestRunnable(RunnableSerializable[Union[BinaryIO, List[str]], List[str]]):
     """Runnable for ingesting files into a vectorstore."""
 
     text_splitter: TextSplitter
@@ -105,16 +106,28 @@ class IngestRunnable(RunnableSerializable[BinaryIO, List[str]]):
         return self.assistant_id if self.assistant_id is not None else self.thread_id
 
     def invoke(
-        self, input: BinaryIO, config: Optional[RunnableConfig] = None
+        self, input: Union[BinaryIO, str], config: Optional[RunnableConfig] = None
     ) -> List[str]:
-        blob = _convert_ingestion_input_to_blob(input)
-        out = ingest_blob(
-            blob,
-            MIMETYPE_BASED_PARSER,
-            self.text_splitter,
-            self.vectorstore,
-            self.namespace,
-        )
+        if isinstance(input, tempfile.SpooledTemporaryFile):
+            print('blob upload', input)
+            blob = _convert_ingestion_input_to_blob(input)
+            out = ingest_blob(
+                blob,
+                MIMETYPE_BASED_PARSER,
+                self.text_splitter,
+                self.vectorstore,
+                self.namespace,
+            )
+        else:
+            print('upload', input)
+            out = []
+            result = ingest_url(
+                input,
+                self.text_splitter,
+                self.vectorstore,
+                self.namespace,
+            )
+            out.append(result)
         return out
 
 

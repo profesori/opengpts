@@ -1,10 +1,18 @@
 import { Config } from "../hooks/useConfigList";
+import { getCookie } from "../utils/cookie";
 
 export async function getAssistant(
   assistantId: string,
 ): Promise<Config | null> {
   try {
-    const response = await fetch(`/assistants/${assistantId}`);
+    const opengpts_user_id = getCookie("opengpts_user_id");
+
+    const response = await fetch(`/assistants/${assistantId}`, {
+      headers: {
+        Authorization: `Bearer ${opengpts_user_id}`,
+      },
+    
+    });
     if (!response.ok) {
       return null;
     }

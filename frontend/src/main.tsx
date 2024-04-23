@@ -17,15 +17,22 @@ function getCookie(name: string) {
 document.addEventListener("DOMContentLoaded", () => {
   const userId =
     localStorage.getItem("opengpts_user_id") ||
-    getCookie("opengpts_user_id") ||
-    uuidv4();
+    getCookie("opengpts_user_id");
 
-  // Push the user id to localStorage in any case to make it stable
-  localStorage.setItem("opengpts_user_id", userId);
-  // Ensure the cookie is always set (for both new and returning users)
-  const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
-  const expires = new Date(Date.now() + weekInMilliseconds).toUTCString();
-  document.cookie = `opengpts_user_id=${userId}; path=/; expires=${expires}; SameSite=Lax;`;
+    if (!userId) {
+      const apiKey = prompt("Please enter your API key :");
+
+      if (apiKey) {
+        localStorage.setItem("opengpts_user_id", apiKey);
+        // Ensure the cookie is always set (for both new and returning users)
+        const weekInMilliseconds = 7 * 24 * 60 * 60 * 1000;
+        const expires = new Date(Date.now() + weekInMilliseconds).toUTCString();
+        document.cookie = `opengpts_user_id=${apiKey}; path=/; expires=${expires}; SameSite=Lax;`;
+      } else {
+        alert("You need to enter an API key to use this page.");
+        window.location.reload();
+      }
+    }
 });
 
 const queryClient = new QueryClient();

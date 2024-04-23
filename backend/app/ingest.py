@@ -13,6 +13,7 @@ from langchain_community.document_loaders import Blob
 from langchain_community.document_loaders.base import BaseBlobParser
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
+from langchain_community.document_loaders import WebBaseLoader
 
 
 def _update_document_metadata(document: Document, namespace: str) -> None:
@@ -52,6 +53,41 @@ def ingest_blob(
         if len(docs_to_index) >= batch_size:
             ids.extend(vectorstore.add_documents(docs_to_index))
             docs_to_index = []
+
+    if docs_to_index:
+        ids.extend(vectorstore.add_documents(docs_to_index))
+
+    return ids
+
+def ingest_url(
+    url: str,
+    text_splitter: TextSplitter,
+    vectorstore: VectorStore,
+    namespace: str,
+    *,
+    batch_size: int = 100,
+) -> List[str]:
+    """Ingest a list of documents into the vectorstore."""
+    print('ingesting url', url)
+    docs_to_index = []
+    ids = []
+    loader = WebBaseLoader(url)
+
+    data = loader.load()
+
+    print('data', data)
+
+    docs = text_splitter.split_documents(data)
+    
+    for document in docs:
+        _sanitize_document_content(document)
+        _update_document_metadata(document, namespace)
+
+    docs_to_index.extend(docs)
+
+    if len(docs_to_index) >= batch_size:
+        ids.extend(vectorstore.add_documents(docs_to_index))
+        docs_to_index = []
 
     if docs_to_index:
         ids.extend(vectorstore.add_documents(docs_to_index))

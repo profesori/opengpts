@@ -44,6 +44,7 @@ function App(props: { edit?: boolean }) {
           "config",
           JSON.stringify({ configurable: { thread_id } }),
         );
+        formData.append("url", null);
         await fetch(`/ingest`, {
           method: "POST",
           body: formData,

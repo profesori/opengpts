@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer } from "react";
 import orderBy from "lodash/orderBy";
+import { getCookie } from "../utils/cookie";
 
 export interface Config {
   assistant_id: string;
@@ -51,9 +52,12 @@ export function useConfigList(): ConfigListProps {
 
   useEffect(() => {
     async function fetchConfigs() {
+      const opengpts_user_id = getCookie("opengpts_user_id");
+
       const myConfigs = await fetch("/assistants/", {
         headers: {
           Accept: "application/json",
+          Authorization: `Bearer ${opengpts_user_id}`,
         },
       })
         .then((r) => r.json())
@@ -72,6 +76,8 @@ export function useConfigList(): ConfigListProps {
       isPublic: boolean,
       assistantId?: string,
     ): Promise<string> => {
+      const opengpts_user_id = getCookie("opengpts_user_id");
+
       const confResponse = await fetch(
         assistantId ? `/assistants/${assistantId}` : "/assistants",
         {
@@ -80,6 +86,7 @@ export function useConfigList(): ConfigListProps {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            Authorization: `Bearer ${opengpts_user_id}`,
           },
         },
       );
@@ -94,9 +101,13 @@ export function useConfigList(): ConfigListProps {
           "config",
           JSON.stringify({ configurable: { assistant_id } }),
         );
+        formData.append("url", null);
         await fetch(`/ingest`, {
           method: "POST",
           body: formData,
+          headers: {
+            Authorization: `Bearer ${opengpts_user_id}`,
+          }
         });
       }
       setConfigs({ ...savedConfig, mine: true });
